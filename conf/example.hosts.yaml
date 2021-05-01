@@ -1,0 +1,25 @@
+Harvester:
+  Name: harvester
+  IP: 10.0.0.1
+  Username: yorling
+  Port: 22
+  TmpDir: /mnt/ssd0
+  DstDir: /mnt/hdd0
+HarvesterProxy:
+  Name: proxyGate
+  IP: proxy.com
+  Username: proxy_user
+  Port: 22
+Farmers:
+  -
+    Name: farmer0
+    IP: 10.0.0.2
+    Username: root
+    Port: 22
+    TmpDir: /mnt/ssd0
+    DstDir: /mnt/hdd0
+HarvesterProxy:
+  Name: proxyGate
+  IP: proxy.com
+  Username: proxy_user
+  Port: 22
