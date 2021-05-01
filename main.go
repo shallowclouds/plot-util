@@ -32,7 +32,7 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-restart:
+start:
 
 	conf := plot.MustReadConfig("conf/hosts.yaml")
 	proxy, harvesterServer, farmersServers := plot.MustInitServers(conf)
@@ -115,25 +115,22 @@ restart:
 		}
 	}
 
-	if latest == "" {
-		logrus.Infof("no new slots")
-		return
-	}
-
 	if fetch != nil && *fetch && server != nil {
-		logrus.Infof("try to pull plot %s from %s", latest, server.Conf.Name)
-		plot.FetchPlot(
-			server.Conf.DstDir,
-			latest, harvester.Conf.DstDir,
-			"", true,
-			proxy,
-			server.Server,
-		)
+		if latest != "" {
+			logrus.Infof("try to pull plot %s from %s", latest, server.Conf.Name)
+			plot.FetchPlot(
+				server.Conf.DstDir,
+				latest, harvester.Conf.DstDir,
+				"", true,
+				proxy,
+				server.Server,
+			)
+		}
 
 		if loop != nil && *loop {
-			logrus.Infof("completed for %s, fetching next plot", latest)
+			logrus.Infof("completed for %s, fetching next plot in 10s", latest)
 			time.Sleep(time.Second * 10)
-			goto restart
+			goto start
 		}
 	}
 }

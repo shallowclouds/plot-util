@@ -11,6 +11,7 @@ HarvesterProxy:
   IP: proxy.com
   Username: proxy_user
   Port: 22
+# farmer servers.
 Farmers:
   -
     Name: farmer0
