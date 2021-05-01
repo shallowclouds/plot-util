@@ -5,6 +5,7 @@ Harvester:
   Port: 22
   TmpDir: /mnt/ssd0
   DstDir: /mnt/hdd0
+# SSH proxy server for harvester, comment out if not need.
 HarvesterProxy:
   Name: proxyGate
   IP: proxy.com
