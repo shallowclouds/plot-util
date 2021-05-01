@@ -11,7 +11,7 @@ HarvesterProxy:
   IP: proxy.com
   Username: proxy_user
   Port: 22
-# farmer servers.
+# Farmer servers.
 Farmers:
   -
     Name: farmer0
@@ -20,7 +20,8 @@ Farmers:
     Port: 22
     TmpDir: /mnt/ssd0
     DstDir: /mnt/hdd0
-HarvesterProxy:
+# Proxy ssh server to connect farmers.
+Proxy:
   Name: proxyGate
   IP: proxy.com
   Username: proxy_user
