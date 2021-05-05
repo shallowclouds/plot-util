@@ -50,6 +50,7 @@ func (rs *RemoteServer) ExecOnce(ctx context.Context, proxy *RemoteServer, comma
 	}
 
 	all = append(all,
+		"-tt",
 		"-oStrictHostKeyChecking=no",
 		fmt.Sprintf("%s@%s", rs.Username, rs.IP),
 		"-p",

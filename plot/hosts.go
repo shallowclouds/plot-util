@@ -12,13 +12,14 @@ type Host struct {
 	Port     int    `yaml:"Port"`
 	TmpDir   string `yaml:"TmpDir"`
 	DstDir   string `yaml:"DstDir"`
+	ChiaDir  string `yaml:"ChiaDir"` // Where chia is installed.
 }
 
 type Config struct {
-	Harvester Host   `yaml:"Harvester"`
-	HarvesterProxy *Host `yaml:"HarvesterProxy"`
-	Farmers   []Host `yaml:"Farmers"`
-	Proxy   Host `yaml:"Proxy"`
+	Harvester      Host   `yaml:"Harvester"`
+	HarvesterProxy *Host  `yaml:"HarvesterProxy"`
+	Farmers        []Host `yaml:"Farmers"`
+	Proxy          Host   `yaml:"Proxy"`
 }
 
 func MustReadConfig(path string) *Config {
@@ -32,12 +33,12 @@ func MustReadConfig(path string) *Config {
 
 func MustInitServers(conf *Config) (*ssh.RemoteServer, *ssh.RemoteServer, map[string]*ssh.RemoteServer) {
 	ps := &ssh.RemoteServer{
-		Host: conf.Proxy.Name,
-		IP: conf.Proxy.IP,
-		Port: conf.Proxy.Port,
+		Host:     conf.Proxy.Name,
+		IP:       conf.Proxy.IP,
+		Port:     conf.Proxy.Port,
 		Username: conf.Proxy.Username,
 	}
-	
+
 	hs := &ssh.RemoteServer{
 		Host:     conf.Harvester.Name,
 		IP:       conf.Harvester.IP,

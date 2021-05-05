@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"time"
 
 	"github.com/shallowclouds/scp-util/plot"
@@ -20,11 +19,36 @@ type Server struct {
 	Conf   *plot.Host
 }
 
+var (
+	harvesterServer *ssh.RemoteServer
+	proxy           *ssh.RemoteServer
+	farmersServers  map[string]*ssh.RemoteServer
+	hProxy          *ssh.RemoteServer
+
+	harvester *Server
+	farmers   map[string]*Server
+)
+
+func getJobStatus() {
+	logrus.Infof("%10s%6s%6s", "farmer", "phase", "time")
+	for h, farmer := range farmers {
+		jobs, err := plot.GetJobStatus(farmer.Server, proxy, farmer.Conf.ChiaDir)
+		if err != nil {
+			logrus.WithError(err).Error("failed to get query job status for %s", h)
+		}
+
+		for _, job := range jobs {
+			logrus.Infof("%10s%6s%6s", h, job.Phase, job.TimeCost)
+		}
+	}
+}
+
 func main() {
 	logrus.Infof("version: %s", version)
 	debug := flag.Bool("debug", false, "")
 	fetch := flag.Bool("fetch", false, "")
 	loop := flag.Bool("loop", false, "")
+	status := flag.Bool("status", false, "")
 
 	flag.Parse()
 
@@ -35,14 +59,14 @@ func main() {
 start:
 
 	conf := plot.MustReadConfig("conf/hosts.yaml")
-	proxy, harvesterServer, farmersServers := plot.MustInitServers(conf)
+	proxy, harvesterServer, farmersServers = plot.MustInitServers(conf)
 
-	harvester := &Server{
+	harvester = &Server{
 		Server: harvesterServer,
 		Conf:   &conf.Harvester,
 	}
 
-	farmers := make(map[string]*Server)
+	farmers = make(map[string]*Server)
 	for _, f := range conf.Farmers {
 		f := f
 		s := &Server{
@@ -61,7 +85,12 @@ start:
 	logrus.Infof("proxy: %s", proxy.Host)
 	logrus.Infof("farmers: %d", len(conf.Farmers))
 
-	var hProxy *ssh.RemoteServer
+	if status != nil && *status {
+		getJobStatus()
+		return
+	}
+
+	// var hProxy *ssh.RemoteServer
 	if conf.HarvesterProxy != nil {
 		hProxy = &ssh.RemoteServer{
 			Host:     conf.HarvesterProxy.Name,
@@ -86,6 +115,7 @@ start:
 	newPlots := map[string][]string{}
 
 	for _, f := range farmers {
+		_, _ = plot.GetJobStatus(f.Server, proxy, f.Conf.DstDir+"-backup")
 		plots, err := plot.GetFarmerStatus(f.Server, proxy, f.Conf.DstDir)
 		if err != nil {
 			logrus.WithError(err).Errorf("failed to get plot status for %s", f.Conf.Name)
@@ -111,12 +141,12 @@ start:
 		for _, p := range plots {
 			latest = p
 			server = farmers[f]
-			fmt.Println(p)
+			logrus.Debug(p)
 		}
 	}
 
-	if fetch != nil && *fetch && server != nil {
-		if latest != "" {
+	if fetch != nil && *fetch {
+		if latest != "" && server != nil {
 			logrus.Infof("try to pull plot %s from %s", latest, server.Conf.Name)
 			plot.FetchPlot(
 				server.Conf.DstDir,
@@ -128,8 +158,8 @@ start:
 		}
 
 		if loop != nil && *loop {
-			logrus.Infof("completed for %s, fetching next plot in 10s", latest)
-			time.Sleep(time.Second * 10)
+			logrus.Infof("fetching next plot in 60s")
+			time.Sleep(time.Second * 60)
 			goto start
 		}
 	}
